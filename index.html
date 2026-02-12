@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>LensAI · Frame Size from Camera</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <!-- Face‑API -->
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0f1e;
+            font-family: 'Inter', sans-serif;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            font-weight: 800;
+            font-size: 28px;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #a0c0ff, #c0a0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subhead {
+            color: #8a9bb5;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .camera-box {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 3 / 4;
+            border-radius: 24px;
+            overflow: hidden;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            background: #000;
+        }
+
+        video, canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        video {
+            transform: scaleX(-1);
+        }
+
+        canvas {
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .status-panel {
+            margin-top: 30px;
+            background: rgba(20, 30, 50, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 24px 20px;
+        }
+
+        .frame-size {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .detail {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 16px;
+            color: #b0c4de;
+            font-size: 15px;
+        }
+
+        .badge {
+            background: rgba(56,136,255,0.2);
+            border: 1px solid #3888ff;
+            border-radius: 100px;
+            padding: 6px 16px;
+            display: inline-block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #aad0ff;
+            margin-bottom: 8px;
+        }
+
+        .note {
+            color: #6b7fa6;
+            font-size: 12px;
+            margin-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 16px;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: #94a3b8;
+        }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-top-color: #3888ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>👓 LensAI Frame Fit</h1>
+        <div class="subhead">Position your face inside the ring</div>
+
+        <!-- Camera + Overlay -->
+        <div class="camera-box">
+            <video id="video" autoplay muted playsinline></video>
+            <canvas id="overlay"></canvas>
+        </div>
+
+        <!-- Status & Frame Size -->
+        <div class="status-panel">
+            <div class="badge" id="statusBadge">📷 Initializing camera...</div>
+            <div class="frame-size" id="frameSizeDisplay">--</div>
+            <div class="detail">
+                <span>Face distance</span>
+                <span id="distanceLabel">--</span>
+            </div>
+            <div class="detail">
+                <span>Pupillary distance (PD)</span>
+                <span id="pdDisplay">--</span>
+            </div>
+            <div class="note" id="instruction">
+                ⚡ Make sure your face is well lit and centered
+            </div>
+        </div>
+
+        <!-- Small loading indicator (hidden when ready) -->
+        <div id="loader" class="loading">
+            <div class="spinner"></div>
+            <span>Loading AI models...</span>
+        </div>
+    </div>
+
+    <script>
+        (async function() {
+            "use strict";
+
+            // ----- DOM elements -----
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('overlay');
+            const ctx = canvas.getContext('2d');
+            const statusBadge = document.getElementById('statusBadge');
+            const frameSizeDisplay = document.getElementById('frameSizeDisplay');
+            const distanceLabel = document.getElementById('distanceLabel');
+            const pdDisplay = document.getElementById('pdDisplay');
+            const loader = document.getElementById('loader');
+            const instruction = document.getElementById('instruction');
+
+            // ----- State -----
+            let modelsReady = false;
+            let cameraActive = false;
+            let detectionInterval = null;
+            let currentStream = null;
+
+            // ----- Model CDNs (fallback) -----
+            const MODEL_CDNS = [
+                "https://justadudewhohacks.github.io/face-api.js/models/",
+                "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model/",
+                "https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights/"
+            ];
+
+            // ----- Load face-api models -----
+            async function loadModels() {
+                statusBadge.textContent = '⏳ Loading AI models...';
+                for (const url of MODEL_CDNS) {
+                    try {
+                        await faceapi.nets.tinyFaceDetector.loadFromUri(url);
+                        await faceapi.nets.faceLandmark68TinyNet.loadFromUri(url);
+                        await faceapi.nets.ageGenderNet.loadFromUri(url); // not strictly needed, but useful for PD
+                        console.log(`✅ Models loaded from ${url}`);
+                        modelsReady = true;
+                        statusBadge.textContent = '✅ Ready – show your face';
+                        loader.classList.add('hidden');
+                        return;
+                    } catch (e) {
+                        console.warn(`Failed from ${url}:`, e);
+                    }
+                }
+                // If all fail – run in "offline" mode with basic capture
+                statusBadge.textContent = '⚠️ Offline mode – basic estimation';
+                modelsReady = false;
+                loader.classList.add('hidden');
+            }
+
+            // ----- Start camera -----
+            async function startCamera() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
+                        audio: false
+                    });
+                    video.srcObject = stream;
+                    currentStream = stream;
+                    await new Promise((resolve) => { video.onloadedmetadata = resolve; });
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    await video.play();
+                    cameraActive = true;
+                    statusBadge.textContent = modelsReady ? '✅ Ready – show your face' : '⚠️ Offline – tap to capture';
+                    startDetection();
+                } catch (err) {
+                    console.error('Camera error:', err);
+                    statusBadge.textContent = '❌ Camera access denied';
+                    instruction.textContent = 'Please allow camera access and refresh.';
+                }
+            }
+
+            // ----- Detection loop (throttled) -----
+            function startDetection() {
+                if (detectionInterval) clearInterval(detectionInterval);
+                // Run every 200ms
+                detectionInterval = setInterval(async () => {
+                    if (!cameraActive || !video.videoWidth) return;
+                    if (modelsReady) {
+                        await detectFace();
+                    } else {
+                        // Offline fallback: no face detection, just show message
+                        drawOfflineOverlay();
+                    }
+                }, 200);
+            }
+
+            // ----- Face detection & analysis -----
+            async function detectFace() {
+                const det = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({
+                    inputSize: 416,
+                    scoreThreshold: 0.5
+                })).withFaceLandmarks(true).withAgeAndGender();
+
+                drawOverlay(det);
+            }
+
+            // ----- Draw overlay and update frame size -----
+            function drawOverlay(det) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                if (!det) {
+                    // No face
+                    ctx.font = '16px Inter';
+                    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                    ctx.shadowColor = 'black';
+                    ctx.shadowBlur = 6;
+                    ctx.fillText('👤 No face', 20, 40);
+                    ctx.shadowBlur = 0;
+                    frameSizeDisplay.textContent = '--';
+                    distanceLabel.textContent = '--';
+                    pdDisplay.textContent = '--';
+                    statusBadge.innerHTML = '👤 No face detected';
+                    return;
+                }
+
+                // Mirror context to match video
+                ctx.save();
+                ctx.translate(canvas.width, 0);
+                ctx.scale(-1, 1);
+
+                const box = det.detection.box;
+                const cx = box.x + box.width / 2;
+                const cy = box.y + box.height / 2;
+                const radius = Math.max(box.width, box.height) * 0.58;
+                const ratio = box.width / canvas.width;  // face width relative to canvas
+
+                // Determine distance and frame size
+                let distanceStatus, ringColor, frameSize;
+                if (ratio < 0.22) {
+                    distanceStatus = 'too far';
+                    ringColor = '#f59e0b';
+                    frameSize = 'Too far – move closer';
+                } else if (ratio > 0.50) {
+                    distanceStatus = 'too close';
+                    ringColor = '#ef4444';
+                    frameSize = 'Too close – step back';
+                } else {
+                    distanceStatus = 'optimal';
+                    ringColor = '#10b981';
+                    // Estimate frame size based on ratio
+                    if (ratio < 0.28) frameSize = 'Slim (132 mm)';
+                    else if (ratio > 0.47) frameSize = 'Wide (150 mm)';
+                    else frameSize = 'Classic (142 mm)';
+                }
+
+                // ----- Draw guidance ring -----
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius + 6, 0, 2 * Math.PI);
+                ctx.strokeStyle = ringColor + '80';
+                ctx.lineWidth = 12;
+                ctx.shadowBlur = 30;
+                ctx.shadowColor = ringColor;
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+                ctx.strokeStyle = ringColor;
+                ctx.lineWidth = 4;
+                ctx.shadowBlur = 24;
+                ctx.stroke();
+
+                // Dashed inner ring
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius - 12, 0, 2 * Math.PI);
+                ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+                ctx.lineWidth = 2;
+                ctx.shadowBlur = 0;
+                ctx.setLineDash([8, 12]);
+                ctx.lineDashOffset = -((Date.now() * 0.02) % 20);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // ----- Draw landmarks (small dots) -----
+                if (det.landmarks) {
+                    const pts = det.landmarks.positions;
+                    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = '#3888ff';
+                    pts.forEach(p => {
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, 1.8, 0, 2 * Math.PI);
+                        ctx.fill();
+                    });
+                }
+
+                ctx.restore();
+
+                // ----- Update UI with frame size and metrics -----
+                frameSizeDisplay.textContent = frameSize;
+                distanceLabel.textContent = distanceStatus;
+
+                // Estimate PD if landmarks exist
+                if (det.landmarks) {
+                    const lm = det.landmarks;
+                    const leftEye = lm.getLeftEye();
+                    const rightEye = lm.getRightEye();
+                    const lPupil = leftEye[Math.floor(leftEye.length / 2)];
+                    const rPupil = rightEye[Math.floor(rightEye.length / 2)];
+                    const pdPx = Math.abs(rPupil.x - lPupil.x);
+                    // Rough conversion: assume 140mm face width = 1? Actually we scale by canvas width
+                    const estimatedPdMm = Math.round((pdPx / canvas.width) * 140);
+                    pdDisplay.textContent = estimatedPdMm + ' mm';
+                } else {
+                    pdDisplay.textContent = '--';
+                }
+
+                // Update badge
+                if (distanceStatus === 'optimal') {
+                    statusBadge.innerHTML = '✅ Face locked · ' + frameSize;
+                    statusBadge.style.background = 'rgba(16,185,129,0.2)';
+                    statusBadge.style.borderColor = '#10b981';
+                } else if (distanceStatus === 'too far') {
+                    statusBadge.innerHTML = '⬅️ Move closer';
+                    statusBadge.style.background = 'rgba(245,158,11,0.2)';
+                    statusBadge.style.borderColor = '#f59e0b';
+                } else if (distanceStatus === 'too close') {
+                    statusBadge.innerHTML = '➡️ Step back';
+                    statusBadge.style.background = 'rgba(239,68,68,0.2)';
+                    statusBadge.style.borderColor = '#ef4444';
+                }
+            }
+
+            // ----- Fallback when no models -----
+            function drawOfflineOverlay() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.font = '16px Inter';
+                ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                ctx.shadowBlur = 6;
+                ctx.shadowColor = 'black';
+                ctx.fillText('⚠️ Offline mode', 20, 40);
+                ctx.shadowBlur = 0;
+                frameSizeDisplay.textContent = '-- (offline)';
+                distanceLabel.textContent = '--';
+                pdDisplay.textContent = '--';
+            }
+
+            // ----- Cleanup -----
+            window.addEventListener('beforeunload', () => {
+                if (currentStream) {
+                    currentStream.getTracks().forEach(t => t.stop());
+                }
+                if (detectionInterval) clearInterval(detectionInterval);
+            });
+
+            // ----- Start everything -----
+            await loadModels();
+            await startCamera();
+        })();
+    </script>
+</body>
+</html>
