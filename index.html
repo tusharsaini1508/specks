@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>LensAI · glasses finder + memory</title>
+    <title>LensAI · precision fit 118–147 mm</title>
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <!-- Face‑API (includes CNN models) -->
+    <!-- Face‑API (CNN models) -->
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -22,7 +22,7 @@
             padding: 16px 12px;
         }
         .container {
-            max-width: 580px;
+            max-width: 600px;
             width: 100%;
         }
         h1 {
@@ -118,6 +118,38 @@
             box-shadow: 0 5px 0 #121c30;
             pointer-events: none;
         }
+        /* New attractive video button */
+        .video-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: linear-gradient(145deg, #e63946, #c92a3a);
+            color: white;
+            font-weight: 800;
+            font-size: 20px;
+            padding: 16px 32px;
+            border-radius: 60px;
+            text-decoration: none;
+            margin: 10px 0 20px;
+            width: 100%;
+            border: 2px solid #ffb3b3;
+            box-shadow: 0 10px 0 #7f1d1d, 0 10px 30px rgba(230, 57, 70, 0.5);
+            transition: all 0.1s ease;
+            letter-spacing: 1px;
+        }
+        .video-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 0 #7f1d1d, 0 15px 30px rgba(230, 57, 70, 0.6);
+        }
+        .video-button:active {
+            transform: translateY(5px);
+            box-shadow: 0 5px 0 #7f1d1d;
+        }
+        .video-button .icon {
+            font-size: 28px;
+            filter: drop-shadow(0 2px 2px black);
+        }
         .gallery {
             background: #0f1a2b;
             border-radius: 28px;
@@ -144,11 +176,11 @@
         .capture-grid::-webkit-scrollbar { height: 6px; }
         .capture-grid::-webkit-scrollbar-thumb { background: #3e5a88; border-radius: 10px; }
         .capture-card {
-            min-width: 140px;
+            min-width: 160px;
             background: #152237;
             border-radius: 20px;
             padding: 12px 10px;
-            border: 1px solid #334十五;
+            border: 1px solid #33485f;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -164,7 +196,7 @@
         }
         .rec-tag {
             font-weight: 700;
-            font-size: 15px;
+            font-size: 14px;
             margin: 8px 0 3px;
             background: #293d60;
             padding: 4px 12px;
@@ -195,13 +227,106 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         .hidden { display: none; }
         .note { color: #738ab8; font-size: 12px; margin-top: 12px; }
-        .pd-badge { background: #20334f; padding: 4px 10px; border-radius: 20px; }
+
+        /* Modal overlay for form */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 16px;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: #172237;
+            border-radius: 32px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 28px 24px;
+            border: 1px solid #3f5680;
+            box-shadow: 0 25px 50px -12px black;
+        }
+        .modal-content h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #d0e0ff;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px 12px;
+        }
+        .full-width { grid-column: span 2; }
+        label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #a5bbdf;
+            display: block;
+            margin-bottom: 4px;
+        }
+        input, select, textarea {
+            width: 100%;
+            background: #0d1a2c;
+            border: 1px solid #334e77;
+            border-radius: 18px;
+            padding: 12px 16px;
+            font-size: 15px;
+            color: white;
+            font-family: 'Inter', sans-serif;
+        }
+        textarea { resize: vertical; min-height: 70px; }
+        .readonly-field {
+            background: #1e314a;
+            border: 1px solid #5773a6;
+            color: #ccdeff;
+            font-weight: 600;
+        }
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+        }
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 40px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn-primary {
+            background: #3f5e9c;
+            color: white;
+        }
+        .btn-secondary {
+            background: #2a3855;
+            color: #b8d0ff;
+            border: 1px solid #506a9a;
+        }
+        .power-group {
+            background: #101c30;
+            border-radius: 20px;
+            padding: 12px;
+            margin-bottom: 8px;
+        }
+        .power-group h4 {
+            color: #b4ccff;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
 <div class="container">
-    <h1>⍟ LensAI · fit memory</h1>
-    <div class="subhead">CNN face analysis • store captures • smart frame recommendation</div>
+    <h1>⍟ LensAI · precision fit </h1>
+    <div class="subhead">CNN analysis • mm‑accurate frame size • customer intake</div>
 
     <!-- camera + overlay -->
     <div class="camera-box">
@@ -218,24 +343,85 @@
         <div class="detail-row"><span>🧏 face shape (CNN)</span> <span id="shapeDisplay">detecting...</span></div>
     </div>
 
-    <!-- capture & recommend button (enabled only when optimal) -->
+    <!-- capture button (enabled only when optimal) -->
     <button class="capture-btn" id="captureBtn" disabled>
-        <span>📸</span> CAPTURE & RECOMMEND
+        <span>📸</span> CAPTURE & ENTER DETAILS
     </button>
 
-    <!-- gallery of previous captures (stored locally) -->
+    <!-- New attractive video button -->
+    <a href="https://www.facebook.com/share/v/1De7qG61aG/" target="_blank" class="video-button">
+        <span class="icon">▶</span> WATCH FITTING VIDEO
+    </a>
+
+    <!-- gallery of previous captures -->
     <div class="gallery">
-        <h3>🕶️ past captures · recommendations
+        <h3>🕶️ past entries
             <button class="clear-btn" id="clearGalleryBtn">clear all</button>
         </h3>
         <div id="galleryContainer" class="capture-grid">
-            <!-- dynamic cards appear here -->
+            <!-- cards will appear here -->
         </div>
-        <div class="note" id="storageNote">✨ captures are saved on this device</div>
+        <div class="note">✨ all data saved on this device</div>
     </div>
 
-    <!-- tiny loader (hidden after models) -->
+    <!-- loader (hidden after models) -->
     <div id="loader" class="loading"><div class="spinner"></div><span>loading CNN models (face-api)</span></div>
+</div>
+
+<!-- Modal: Customer details form -->
+<div class="modal" id="customerFormModal">
+    <div class="modal-content">
+        <h2>👤 Customer details & prescription</h2>
+        <form id="detailsForm">
+            <div class="form-grid">
+                <!-- Basic info -->
+                <div class="full-width"><label>Full name *</label><input type="text" id="fullName" required></div>
+                <div><label>Age *</label><input type="number" id="age" required min="1" max="120"></div>
+                <div><label>Date of birth</label><input type="date" id="dob"></div>
+                <div><label>Gender</label><select id="genderSelect"><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select></div>
+                <div class="full-width"><label>Address</label><textarea id="address" rows="2"></textarea></div>
+                <div><label>Ward no.</label><input type="text" id="ward"></div>
+                <div><label>Booth no. / PS no.</label><input type="text" id="booth"></div>
+                <div class="full-width"><label>Mobile / WhatsApp *</label><input type="tel" id="mobile" required placeholder="e.g. 9876543210"></div>
+            </div>
+
+            <!-- Auto-detected fields (readonly) -->
+            <div style="margin: 18px 0 10px; background:#1b2845; border-radius: 24px; padding: 14px;">
+                <div class="detail-row"><span>📐 Recommended frame size (total width)</span> <span id="detectedFrameSize" class="readonly-field" style="padding:4px 12px;">--</span></div>
+                <div class="detail-row"><span>🕶️ Suggested frame type</span> <span id="detectedFrameType" class="readonly-field" style="padding:4px 12px;">--</span></div>
+            </div>
+
+            <!-- Power parameters (OD / OS) -->
+            <div style="margin-top: 15px;">
+                <h3 style="color:#b4ccff; font-size:18px; margin-bottom:8px;">🔎 Power details</h3>
+                <div class="power-group">
+                    <h4>Right eye (O.D.)</h4>
+                    <div class="form-grid">
+                        <div><label>Spherical</label><input type="text" id="odSph" placeholder="e.g. -2.00"></div>
+                        <div><label>Cylindrical</label><input type="text" id="odCyl" placeholder="e.g. -0.50"></div>
+                        <div><label>Axis</label><input type="text" id="odAxis" placeholder="e.g. 180"></div>
+                        <div><label>Prism</label><input type="text" id="odPrism"></div>
+                        <div><label>Base</label><input type="text" id="odBase"></div>
+                    </div>
+                </div>
+                <div class="power-group">
+                    <h4>Left eye (O.S.)</h4>
+                    <div class="form-grid">
+                        <div><label>Spherical</label><input type="text" id="osSph"></div>
+                        <div><label>Cylindrical</label><input type="text" id="osCyl"></div>
+                        <div><label>Axis</label><input type="text" id="osAxis"></div>
+                        <div><label>Prism</label><input type="text" id="osPrism"></div>
+                        <div><label>Base</label><input type="text" id="osBase"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" id="cancelFormBtn">Cancel</button>
+                <button type="submit" class="btn btn-primary">💾 Save entry</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <script>
@@ -253,37 +439,47 @@
     const galleryDiv = document.getElementById('galleryContainer');
     const clearBtn = document.getElementById('clearGalleryBtn');
     const loader = document.getElementById('loader');
+    const modal = document.getElementById('customerFormModal');
+    const cancelFormBtn = document.getElementById('cancelFormBtn');
+    const detailsForm = document.getElementById('detailsForm');
+
+    // fields inside modal (auto‑filled)
+    const detectedFrameSpan = document.getElementById('detectedFrameSize');
+    const detectedTypeSpan = document.getElementById('detectedFrameType');
 
     // ----- state -----
     let modelsReady = false;
     let cameraActive = false;
     let currentStream = null;
     let detectionInterval = null;
-    let lastDetection = null;                // store latest face detection (with landmarks/gender/age)
-    let captures = [];                       // array of capture objects
+    let lastDetection = null;                // latest detection result
+    let lastRecommendedFrameMm = 0;           // recommended total frame width (118–147)
+    let lastFrameType = '';                  // recommendation string
+    let lastPdMm = 0;
+    let lastShape = '';
 
-    // ----- constants for recommendation -----
-    const MODEL_CDNS = [
-        "https://justadudewhohacks.github.io/face-api.js/models/",
-        "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model/",
-        "https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights/"
-    ];
+    // collection of saved entries (max 15)
+    let entries = [];
 
-    // ----- load stored captures from localStorage -----
-    function loadCaptures() {
+    // constants
+    const AVERAGE_PD_MM = 63;                // reference adult PD
+    const MIN_FRAME_MM = 118;
+    const MAX_FRAME_MM = 147;
+
+    // ----- load stored entries from localStorage -----
+    function loadEntries() {
         try {
-            const stored = localStorage.getItem('lensai_captures');
+            const stored = localStorage.getItem('lensai_entries');
             if (stored) {
-                captures = JSON.parse(stored);
-                // limit to last 12 to avoid too much localStorage
-                if (captures.length > 12) captures = captures.slice(-12);
+                entries = JSON.parse(stored);
+                if (entries.length > 15) entries = entries.slice(-15);
             }
-        } catch (e) { console.warn('failed to load captures', e); }
+        } catch (e) { console.warn('failed to load entries', e); }
         renderGallery();
     }
-    function saveCaptures() {
+    function saveEntries() {
         try {
-            localStorage.setItem('lensai_captures', JSON.stringify(captures));
+            localStorage.setItem('lensai_entries', JSON.stringify(entries));
         } catch (e) { console.warn('storage failed', e); }
         renderGallery();
     }
@@ -291,17 +487,17 @@
     // ----- render gallery cards -----
     function renderGallery() {
         if (!galleryDiv) return;
-        if (captures.length === 0) {
-            galleryDiv.innerHTML = '<div style="color:#6a7faa; padding:10px; text-align:center; width:100%;">no captures yet — press the big button</div>';
+        if (entries.length === 0) {
+            galleryDiv.innerHTML = '<div style="color:#6a7faa; padding:10px; text-align:center; width:100%;">no entries yet — capture a face</div>';
             return;
         }
         let html = '';
-        captures.slice().reverse().forEach((cap, idx) => {   // show newest first
+        entries.slice().reverse().forEach(entry => {
             html += `<div class="capture-card">
-                <img src="${cap.thumbnail}" class="thumb" alt="face" />
-                <div class="rec-tag">${cap.recommendation || '—'}</div>
-                <div class="meta-small">${cap.shape} · ${cap.frameSize}</div>
-                <div class="meta-small" style="margin-top:4px;">👁️ ${cap.pd} mm</div>
+                <img src="${entry.thumbnail}" class="thumb" alt="face" />
+                <div class="rec-tag">${entry.name ? entry.name.slice(0,10) : '—'}</div>
+                <div class="meta-small">${entry.frameSize} · ${entry.shape}</div>
+                <div class="meta-small">📞 ${entry.mobile || ''}</div>
             </div>`;
         });
         galleryDiv.innerHTML = html;
@@ -309,26 +505,29 @@
 
     // ----- clear gallery -----
     clearBtn.addEventListener('click', () => {
-        captures = [];
-        saveCaptures();
+        entries = [];
+        saveEntries();
     });
 
     // ----- load face-api models with fallback -----
     async function loadModels() {
         statusBadge.textContent = '⏳ loading AI models...';
-        for (const url of MODEL_CDNS) {
+        for (const url of [
+            "https://justadudewhohacks.github.io/face-api.js/models/",
+            "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model/",
+            "https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights/"
+        ]) {
             try {
                 await faceapi.nets.tinyFaceDetector.loadFromUri(url);
                 await faceapi.nets.faceLandmark68TinyNet.loadFromUri(url);
-                await faceapi.nets.ageGenderNet.loadFromUri(url);   // for gender/age (CNN)
+                await faceapi.nets.ageGenderNet.loadFromUri(url);
                 console.log(`✅ models loaded from ${url}`);
                 modelsReady = true;
                 statusBadge.textContent = '✅ ready – show your face';
                 loader.classList.add('hidden');
                 return;
-            } catch (e) { console.warn(`load fail from ${url}`, e); }
+            } catch (e) { console.warn('load fail', e); }
         }
-        // if all fail, fallback to offline mode (no detection)
         modelsReady = false;
         statusBadge.textContent = '⚠️ offline mode – limited';
         loader.classList.add('hidden');
@@ -343,19 +542,19 @@
             });
             video.srcObject = stream;
             currentStream = stream;
-            await new Promise((r) => { video.onloadedmetadata = r; });
+            await new Promise(r => { video.onloadedmetadata = r; });
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             await video.play();
             cameraActive = true;
-            statusBadge.textContent = modelsReady ? '✅ show your face' : '⚠️ offline – tap capture anyway?';
+            statusBadge.textContent = modelsReady ? '✅ show your face' : '⚠️ offline';
             startDetectionLoop();
         } catch (err) {
             statusBadge.textContent = '❌ camera access denied';
         }
     }
 
-    // ----- periodic detection (if models ready) -----
+    // ----- periodic detection -----
     function startDetectionLoop() {
         if (detectionInterval) clearInterval(detectionInterval);
         detectionInterval = setInterval(async () => {
@@ -368,19 +567,19 @@
         }, 200);
     }
 
-    // ----- main detection + overlay + UI update -----
+    // ----- detection + overlay + metrics update -----
     async function detectFaceAndDraw() {
         const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({
             inputSize: 416,
             scoreThreshold: 0.5
         })).withFaceLandmarks(true).withAgeAndGender();
 
-        lastDetection = detection;   // store for capture
+        lastDetection = detection;
         drawOverlay(detection);
-        updateUIFromDetection(detection);
+        updateMetrics(detection);
     }
 
-    // ----- draw overlays (mirrored) and update UI -----
+    // ----- draw overlay (mirrored) -----
     function drawOverlay(det) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         if (!det) {
@@ -395,7 +594,7 @@
 
         ctx.save();
         ctx.translate(canvas.width, 0);
-        ctx.scale(-1, 1);   // mirror to match video
+        ctx.scale(-1, 1);
 
         const box = det.detection.box;
         const cx = box.x + box.width/2;
@@ -403,13 +602,12 @@
         const radius = Math.max(box.width, box.height) * 0.58;
         const faceRatio = box.width / canvas.width;
 
-        // color by distance
         let ringColor = '#fbbf24';
-        if (faceRatio < 0.22) ringColor = '#f59e0b';      // too far
-        else if (faceRatio > 0.5) ringColor = '#ef4444';  // too close
-        else ringColor = '#10b981';                        // optimal
+        if (faceRatio < 0.22) ringColor = '#f59e0b';
+        else if (faceRatio > 0.5) ringColor = '#ef4444';
+        else ringColor = '#10b981';
 
-        // guidance ring
+        // outer glow
         ctx.beginPath();
         ctx.arc(cx, cy, radius+6, 0, 2*Math.PI);
         ctx.strokeStyle = ringColor + '80';
@@ -425,7 +623,7 @@
         ctx.shadowBlur = 20;
         ctx.stroke();
 
-        // dashed inner ring (animated)
+        // dashed inner ring
         ctx.beginPath();
         ctx.arc(cx, cy, radius-12, 0, 2*Math.PI);
         ctx.strokeStyle = '#ffffff80';
@@ -436,13 +634,12 @@
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // draw tiny landmarks
+        // landmarks
         if (det.landmarks) {
-            const pts = det.landmarks.positions;
             ctx.fillStyle = '#ffffff';
             ctx.shadowBlur = 10;
             ctx.shadowColor = '#3888ff';
-            pts.forEach(p => {
+            det.landmarks.positions.forEach(p => {
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, 2, 0, 2*Math.PI);
                 ctx.fill();
@@ -451,8 +648,8 @@
         ctx.restore();
     }
 
-    // ----- update text fields based on detection (called every frame) -----
-    function updateUIFromDetection(det) {
+    // ----- update text fields, calculate frame mm (118–147), frame type -----
+    function updateMetrics(det) {
         if (!det) {
             frameSizeDisplay.textContent = '--';
             distanceLabel.textContent = '--';
@@ -465,71 +662,78 @@
 
         const box = det.detection.box;
         const faceRatio = box.width / canvas.width;
-        let distanceStatus, frameSize;
-        if (faceRatio < 0.22) {
-            distanceStatus = 'too far';
-            frameSize = 'too far';
-        } else if (faceRatio > 0.5) {
-            distanceStatus = 'too close';
-            frameSize = 'too close';
-        } else {
-            distanceStatus = 'optimal';
-            if (faceRatio < 0.28) frameSize = 'Slim (132 mm)';
-            else if (faceRatio > 0.47) frameSize = 'Wide (150 mm)';
-            else frameSize = 'Classic (142 mm)';
-        }
+        let distanceStatus;
+        if (faceRatio < 0.22) distanceStatus = 'too far';
+        else if (faceRatio > 0.5) distanceStatus = 'too close';
+        else distanceStatus = 'optimal';
 
-        // PD estimate from eyes
-        let pd = '--';
+        // ----- compute PD in mm and face width in mm -----
+        let pdPx = null;
+        let faceWidthMm = 0;
         if (det.landmarks) {
             const leftEye = det.landmarks.getLeftEye();
             const rightEye = det.landmarks.getRightEye();
             const l = leftEye[Math.floor(leftEye.length/2)];
             const r = rightEye[Math.floor(rightEye.length/2)];
-            const pdPx = Math.abs(r.x - l.x);
-            pd = Math.round((pdPx / canvas.width) * 140) + '';
-        }
-
-        // face shape estimation (simple CNN-based heuristic using landmarks)
-        let shape = 'oval';
-        if (det.landmarks) {
-            const jaw = det.landmarks.getJawOutline();   // 0..16
-            if (jaw.length > 10) {
-                const faceWidth = box.width;
-                const faceHeight = box.height;
-                const ratioWH = faceWidth/faceHeight;
-                // chin width (points 6-10)
-                const chinW = Math.hypot(jaw[6].x - jaw[10].x, jaw[6].y - jaw[10].y);
-                const cheekW = Math.hypot(jaw[2].x - jaw[14].x, jaw[2].y - jaw[14].y); // rough cheek
-                if (ratioWH > 0.95 && ratioWH < 1.08 && chinW > 0.75*faceWidth) shape = 'round';
-                else if (ratioWH <= 0.9) shape = 'oval';
-                else if (ratioWH >= 1.1) shape = 'long';
-                else if (chinW < 0.65*faceWidth) shape = 'heart';
-                else shape = 'square';
+            pdPx = Math.abs(r.x - l.x);
+            if (pdPx > 0) {
+                const mmPerPx = AVERAGE_PD_MM / pdPx;
+                faceWidthMm = Math.round(box.width * mmPerPx);
             }
         }
+        if (faceWidthMm === 0) {
+            // fallback using average face width ~145mm and ratio
+            faceWidthMm = Math.round(145 * (box.width / canvas.width));
+        }
 
-        // gender / age (from CNN)
+        // ----- recommended total frame width (118–147) -----
+        // typical frame adds ~12mm to face width, then clamp
+        let rawRecommended = faceWidthMm + 12;
+        let recommendedFrame = Math.min(MAX_FRAME_MM, Math.max(MIN_FRAME_MM, rawRecommended));
+        lastRecommendedFrameMm = recommendedFrame;
+
+        // ----- PD display (using same scaling) -----
+        let pdValue = '--';
+        if (pdPx) {
+            pdValue = Math.round((pdPx / canvas.width) * 140) + ' mm';
+        }
+
+        // ----- face shape -----
+        let shape = 'oval';
+        if (det.landmarks) {
+            const jaw = det.landmarks.getJawOutline();
+            const ratioWH = box.width / box.height;
+            if (ratioWH > 0.95 && ratioWH < 1.08) shape = 'round';
+            else if (ratioWH <= 0.9) shape = 'oval';
+            else if (ratioWH >= 1.1) shape = 'long';
+            else shape = 'square';
+        }
+        lastShape = shape;
+
+        // ----- frame type suggestion based on shape, gender, age -----
         let gender = det.gender || 'neutral';
         let age = det.age ? Math.round(det.age) : 30;
+        let suggestion = '';
+        if (shape === 'round') suggestion = 'angular / square frames';
+        else if (shape === 'oval') suggestion = 'aviators, wayfarers';
+        else if (shape === 'square') suggestion = 'round / cat-eye';
+        else if (shape === 'heart') suggestion = 'bottom-heavy';
+        else if (shape === 'long') suggestion = 'oversized / bold temples';
+        else suggestion = 'classic rectangle';
+        if (gender === 'female' && age < 35) suggestion += ' · trendy';
+        else if (gender === 'male' && age > 45) suggestion += ' · conservative';
+        lastFrameType = suggestion;
 
         // update DOM
-        frameSizeDisplay.textContent = frameSize;
+        frameSizeDisplay.textContent = recommendedFrame + ' mm';
         distanceLabel.textContent = distanceStatus;
-        pdDisplay.textContent = pd + ' mm';
+        pdDisplay.textContent = pdValue;
         shapeDisplay.textContent = shape;
 
-        // enable/disable capture button
+        // enable/disable capture
         captureBtn.disabled = (distanceStatus !== 'optimal');
 
-        // badge text
-        if (distanceStatus === 'optimal') {
-            statusBadge.innerHTML = `✅ locked · ${frameSize} · ${gender}`;
-        } else if (distanceStatus === 'too far') {
-            statusBadge.innerHTML = '⬅️ move closer';
-        } else {
-            statusBadge.innerHTML = '➡️ step back';
-        }
+        statusBadge.innerHTML = distanceStatus === 'optimal' ? `✅ locked · ${shape}` : (distanceStatus === 'too far' ? '⬅️ move closer' : '➡️ step back');
     }
 
     function drawOfflineOverlay() {
@@ -541,103 +745,102 @@
         ctx.shadowBlur = 0;
     }
 
-    // ----- capture current face & store recommendation -----
-    async function captureCurrentFace() {
-        if (!lastDetection || !video.videoWidth) {
-            alert('No face detected yet');
+    // ----- show modal and prefill detected values -----
+    function openFormModal() {
+        if (!lastDetection) {
+            alert('No face data. Please capture again.');
             return;
         }
+        detectedFrameSpan.textContent = lastRecommendedFrameMm ? lastRecommendedFrameMm + ' mm' : '--';
+        detectedTypeSpan.textContent = lastFrameType || '--';
+        // Optionally prefill gender from detection
+        if (lastDetection.gender) {
+            document.getElementById('genderSelect').value = lastDetection.gender.toLowerCase();
+        }
+        if (lastDetection.age) {
+            document.getElementById('age').value = Math.round(lastDetection.age);
+        }
+        modal.classList.add('active');
+    }
 
-        // generate thumbnail from video (mirrored to look natural)
+    cancelFormBtn.addEventListener('click', () => {
+        modal.classList.remove('active');
+    });
+
+    // ----- handle form submit: combine with captured data and save -----
+    detailsForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        // generate thumbnail from video
         const thumbCanvas = document.createElement('canvas');
         thumbCanvas.width = 100;
         thumbCanvas.height = 100;
         const tCtx = thumbCanvas.getContext('2d');
-        // flip to correct mirror
         tCtx.translate(100, 0);
         tCtx.scale(-1, 1);
         tCtx.drawImage(video, 0, 0, 100, 100);
         const thumbData = thumbCanvas.toDataURL('image/jpeg', 0.7);
 
-        // extract latest metrics
-        const box = lastDetection.detection.box;
-        const faceRatio = box.width / canvas.width;
-        let frameSize = 'classic';
-        if (faceRatio < 0.28) frameSize = 'slim 132mm';
-        else if (faceRatio > 0.47) frameSize = 'wide 150mm';
-        else frameSize = 'classic 142mm';
+        const name = document.getElementById('fullName').value.trim() || 'Unknown';
+        const age = document.getElementById('age').value;
+        const dob = document.getElementById('dob').value;
+        const gender = document.getElementById('genderSelect').value;
+        const address = document.getElementById('address').value;
+        const ward = document.getElementById('ward').value;
+        const booth = document.getElementById('booth').value;
+        const mobile = document.getElementById('mobile').value;
+        const odSph = document.getElementById('odSph').value;
+        const odCyl = document.getElementById('odCyl').value;
+        const odAxis = document.getElementById('odAxis').value;
+        const odPrism = document.getElementById('odPrism').value;
+        const odBase = document.getElementById('odBase').value;
+        const osSph = document.getElementById('osSph').value;
+        const osCyl = document.getElementById('osCyl').value;
+        const osAxis = document.getElementById('osAxis').value;
+        const osPrism = document.getElementById('osPrism').value;
+        const osBase = document.getElementById('osBase').value;
 
-        // PD
-        let pd = '--';
-        if (lastDetection.landmarks) {
-            const leftEye = lastDetection.landmarks.getLeftEye();
-            const rightEye = lastDetection.landmarks.getRightEye();
-            const l = leftEye[Math.floor(leftEye.length/2)];
-            const r = rightEye[Math.floor(rightEye.length/2)];
-            const pdPx = Math.abs(r.x - l.x);
-            pd = Math.round((pdPx / canvas.width) * 140) + '';
-        }
-
-        // shape again (copy from updateUI)
-        let shape = 'oval';
-        if (lastDetection.landmarks) {
-            const jaw = lastDetection.landmarks.getJawOutline();
-            const faceWidth = box.width;
-            const faceHeight = box.height;
-            const ratioWH = faceWidth/faceHeight;
-            if (ratioWH > 0.95 && ratioWH < 1.08) shape = 'round';
-            else if (ratioWH <= 0.9) shape = 'oval';
-            else if (ratioWH >= 1.1) shape = 'long';
-            else shape = 'square';
-        }
-
-        // get gender/age
-        const gender = lastDetection.gender || 'neutral';
-        const age = lastDetection.age ? Math.round(lastDetection.age) : 30;
-
-        // ----- intelligent glasses recommendation based on shape & gender & age (cnn combined) -----
-        let recommendation = '';
-        if (shape === 'round') recommendation = 'angular / square frames';
-        else if (shape === 'oval') recommendation = 'most shapes – aviators, wayfarers';
-        else if (shape === 'square') recommendation = 'round / oval / cat-eye';
-        else if (shape === 'heart') recommendation = 'bottom-heavy / butterfly';
-        else if (shape === 'long') recommendation = 'oversized / bold temples';
-        else recommendation = 'classic rectangle';
-
-        // slight gender/age tweak
-        if (gender === 'female' && age < 35) recommendation += ' · trendy colors';
-        else if (gender === 'male' && age > 45) recommendation += ' · conservative';
-
-        // build capture object
-        const captureObj = {
+        const entry = {
             thumbnail: thumbData,
-            frameSize: frameSize,
-            pd: pd,
-            shape: shape,
-            gender: gender,
+            name: name,
             age: age,
-            recommendation: recommendation,
+            dob: dob,
+            gender: gender,
+            address: address,
+            ward: ward,
+            booth: booth,
+            mobile: mobile,
+            frameSize: lastRecommendedFrameMm + ' mm',
+            shape: lastShape,
+            frameType: lastFrameType,
+            pd: lastPdMm,
+            power: { od: { sph: odSph, cyl: odCyl, axis: odAxis, prism: odPrism, base: odBase },
+                     os: { sph: osSph, cyl: osCyl, axis: osAxis, prism: osPrism, base: osBase } },
             timestamp: Date.now()
         };
 
-        captures.push(captureObj);
-        if (captures.length > 15) captures.shift();  // keep reasonable size
-        saveCaptures();
-    }
+        entries.push(entry);
+        if (entries.length > 15) entries.shift();
+        saveEntries();
 
-    // ----- capture button logic -----
-    captureBtn.addEventListener('click', () => {
-        captureCurrentFace().catch(console.warn);
+        modal.classList.remove('active');
+        detailsForm.reset(); // optional, but keep detected values for next?
+        // re-show detected frame fields as they were before reset
+        detectedFrameSpan.textContent = lastRecommendedFrameMm + ' mm';
+        detectedTypeSpan.textContent = lastFrameType;
     });
 
-    // ----- cleanup on page leave -----
+    // ----- capture button click -> open modal -----
+    captureBtn.addEventListener('click', openFormModal);
+
+    // ----- cleanup -----
     window.addEventListener('beforeunload', () => {
         if (currentStream) currentStream.getTracks().forEach(t => t.stop());
         if (detectionInterval) clearInterval(detectionInterval);
     });
 
     // ----- bootstrap -----
-    loadCaptures();
+    loadEntries();
     loadModels().then(() => startCamera());
 })();
 </script>
