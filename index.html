@@ -3,437 +3,643 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>LensAI · Frame Size from Camera</title>
-    
+    <title>LensAI · glasses finder + memory</title>
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    
-    <!-- Face‑API -->
+    <!-- Face‑API (includes CNN models) -->
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
-
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: #0a0f1e;
+            background: #0b1120;
             font-family: 'Inter', sans-serif;
-            color: white;
+            color: #e2e8f0;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            padding: 20px;
+            padding: 16px 12px;
         }
-
         .container {
-            max-width: 500px;
+            max-width: 580px;
             width: 100%;
-            text-align: center;
         }
-
         h1 {
             font-weight: 800;
             font-size: 28px;
             letter-spacing: -0.5px;
-            margin-bottom: 8px;
-            background: linear-gradient(135deg, #a0c0ff, #c0a0ff);
+            margin-bottom: 4px;
+            background: linear-gradient(145deg, #b4c6ff, #d6b0ff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-
         .subhead {
-            color: #8a9bb5;
-            margin-bottom: 24px;
+            color: #9aaec9;
             font-size: 14px;
+            margin-bottom: 18px;
         }
-
         .camera-box {
             position: relative;
             width: 100%;
-            aspect-ratio: 3 / 4;
-            border-radius: 24px;
+            aspect-ratio: 3/4;
+            border-radius: 28px;
             overflow: hidden;
-            border: 3px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-            background: #000;
+            border: 2px solid rgba(255,215,100,0.3);
+            box-shadow: 0 20px 35px -8px #00000080;
+            background: #0f172a;
         }
-
         video, canvas {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             object-fit: cover;
         }
-
-        video {
-            transform: scaleX(-1);
-        }
-
-        canvas {
-            pointer-events: none;
-            z-index: 10;
-        }
-
+        video { transform: scaleX(-1); }
+        canvas { pointer-events: none; z-index: 10; }
         .status-panel {
-            margin-top: 30px;
-            background: rgba(20, 30, 50, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 20px;
-            padding: 24px 20px;
+            margin: 20px 0 16px;
+            background: rgba(20,30,55,0.8);
+            backdrop-filter: blur(16px);
+            border: 1px solid #2d3a5e;
+            border-radius: 28px;
+            padding: 20px 18px;
         }
-
         .frame-size {
             font-size: 32px;
             font-weight: 800;
-            margin-bottom: 8px;
-            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            line-height: 1.2;
+            background: linear-gradient(145deg, #fcd34d, #fbbf24);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-
-        .detail {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 16px;
-            color: #b0c4de;
-            font-size: 15px;
-        }
-
         .badge {
-            background: rgba(56,136,255,0.2);
-            border: 1px solid #3888ff;
-            border-radius: 100px;
+            background: #1e2a47;
+            border: 1px solid #3b4e7a;
+            border-radius: 40px;
             padding: 6px 16px;
-            display: inline-block;
             font-size: 13px;
             font-weight: 600;
-            color: #aad0ff;
+            color: #cbd5e1;
+            display: inline-block;
             margin-bottom: 8px;
         }
-
-        .note {
-            color: #6b7fa6;
-            font-size: 12px;
-            margin-top: 20px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            padding-top: 16px;
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 14px;
+            color: #b8c7e7;
+            font-size: 15px;
+            border-bottom: 1px dashed #2f3d60;
+            padding-bottom: 8px;
         }
-
-        .loading {
+        .capture-btn {
+            background: #2f3e6b;
+            border: none;
+            width: 100%;
+            padding: 18px 0;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 20px;
+            color: #f0f4ff;
             display: flex;
             align-items: center;
             justify-content: center;
+            gap: 10px;
+            margin: 18px 0 14px;
+            transition: 0.15s;
+            box-shadow: 0 8px 0 #121c30;
+            cursor: pointer;
+        }
+        .capture-btn:active { transform: translateY(5px); box-shadow: 0 3px 0 #121c30; }
+        .capture-btn:disabled {
+            opacity: 0.4;
+            transform: none;
+            box-shadow: 0 5px 0 #121c30;
+            pointer-events: none;
+        }
+        .gallery {
+            background: #0f1a2b;
+            border-radius: 28px;
+            padding: 18px 14px;
+            border: 1px solid #293856;
+        }
+        .gallery h3 {
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 14px;
+            color: #bdd3ff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .capture-grid {
+            display: flex;
+            gap: 14px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            scrollbar-width: thin;
+            scrollbar-color: #3e5275 #1e2a3a;
+        }
+        .capture-grid::-webkit-scrollbar { height: 6px; }
+        .capture-grid::-webkit-scrollbar-thumb { background: #3e5a88; border-radius: 10px; }
+        .capture-card {
+            min-width: 140px;
+            background: #152237;
+            border-radius: 20px;
+            padding: 12px 10px;
+            border: 1px solid #334十五;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .thumb {
+            width: 100%;
+            aspect-ratio: 1/1;
+            border-radius: 16px;
+            background: #1e2c40;
+            object-fit: cover;
+            border: 2px solid #4b618b;
+        }
+        .rec-tag {
+            font-weight: 700;
+            font-size: 15px;
+            margin: 8px 0 3px;
+            background: #293d60;
+            padding: 4px 12px;
+            border-radius: 40px;
+            color: #e0ebff;
+        }
+        .meta-small {
+            font-size: 11px;
+            color: #8fa3cd;
+        }
+        .clear-btn {
+            background: none;
+            border: 1px solid #4a5e89;
+            color: #bdd3ff;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            margin-left: 12px;
+            cursor: pointer;
+        }
+        .loading {
+            display: flex;
+            align-items: center;
             gap: 8px;
-            color: #94a3b8;
+            color: #9cb1d4;
         }
-
-        .spinner {
-            width: 18px;
-            height: 18px;
-            border: 2px solid rgba(255,255,255,0.2);
-            border-top-color: #3888ff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
+        .spinner { width: 18px; height: 18px; border: 2px solid #2b4168; border-top-color: #70a0ff; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-
         .hidden { display: none; }
+        .note { color: #738ab8; font-size: 12px; margin-top: 12px; }
+        .pd-badge { background: #20334f; padding: 4px 10px; border-radius: 20px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>👓 LensAI Frame Fit</h1>
-        <div class="subhead">Position your face inside the ring</div>
+<div class="container">
+    <h1>⍟ LensAI · fit memory</h1>
+    <div class="subhead">CNN face analysis • store captures • smart frame recommendation</div>
 
-        <!-- Camera + Overlay -->
-        <div class="camera-box">
-            <video id="video" autoplay muted playsinline></video>
-            <canvas id="overlay"></canvas>
-        </div>
-
-        <!-- Status & Frame Size -->
-        <div class="status-panel">
-            <div class="badge" id="statusBadge">📷 Initializing camera...</div>
-            <div class="frame-size" id="frameSizeDisplay">--</div>
-            <div class="detail">
-                <span>Face distance</span>
-                <span id="distanceLabel">--</span>
-            </div>
-            <div class="detail">
-                <span>Pupillary distance (PD)</span>
-                <span id="pdDisplay">--</span>
-            </div>
-            <div class="note" id="instruction">
-                ⚡ Make sure your face is well lit and centered
-            </div>
-        </div>
-
-        <!-- Small loading indicator (hidden when ready) -->
-        <div id="loader" class="loading">
-            <div class="spinner"></div>
-            <span>Loading AI models...</span>
-        </div>
+    <!-- camera + overlay -->
+    <div class="camera-box">
+        <video id="video" autoplay muted playsinline></video>
+        <canvas id="overlay"></canvas>
     </div>
 
-    <script>
-        (async function() {
-            "use strict";
+    <!-- live status panel -->
+    <div class="status-panel">
+        <span class="badge" id="statusBadge">📡 initializing camera...</span>
+        <div class="frame-size" id="frameSizeDisplay">--</div>
+        <div class="detail-row"><span>📏 face distance</span> <span id="distanceLabel">--</span></div>
+        <div class="detail-row"><span>👁️ pupillary distance (PD)</span> <span id="pdDisplay">-- mm</span></div>
+        <div class="detail-row"><span>🧏 face shape (CNN)</span> <span id="shapeDisplay">detecting...</span></div>
+    </div>
 
-            // ----- DOM elements -----
-            const video = document.getElementById('video');
-            const canvas = document.getElementById('overlay');
-            const ctx = canvas.getContext('2d');
-            const statusBadge = document.getElementById('statusBadge');
-            const frameSizeDisplay = document.getElementById('frameSizeDisplay');
-            const distanceLabel = document.getElementById('distanceLabel');
-            const pdDisplay = document.getElementById('pdDisplay');
-            const loader = document.getElementById('loader');
-            const instruction = document.getElementById('instruction');
+    <!-- capture & recommend button (enabled only when optimal) -->
+    <button class="capture-btn" id="captureBtn" disabled>
+        <span>📸</span> CAPTURE & RECOMMEND
+    </button>
 
-            // ----- State -----
-            let modelsReady = false;
-            let cameraActive = false;
-            let detectionInterval = null;
-            let currentStream = null;
+    <!-- gallery of previous captures (stored locally) -->
+    <div class="gallery">
+        <h3>🕶️ past captures · recommendations
+            <button class="clear-btn" id="clearGalleryBtn">clear all</button>
+        </h3>
+        <div id="galleryContainer" class="capture-grid">
+            <!-- dynamic cards appear here -->
+        </div>
+        <div class="note" id="storageNote">✨ captures are saved on this device</div>
+    </div>
 
-            // ----- Model CDNs (fallback) -----
-            const MODEL_CDNS = [
-                "https://justadudewhohacks.github.io/face-api.js/models/",
-                "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model/",
-                "https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights/"
-            ];
+    <!-- tiny loader (hidden after models) -->
+    <div id="loader" class="loading"><div class="spinner"></div><span>loading CNN models (face-api)</span></div>
+</div>
 
-            // ----- Load face-api models -----
-            async function loadModels() {
-                statusBadge.textContent = '⏳ Loading AI models...';
-                for (const url of MODEL_CDNS) {
-                    try {
-                        await faceapi.nets.tinyFaceDetector.loadFromUri(url);
-                        await faceapi.nets.faceLandmark68TinyNet.loadFromUri(url);
-                        await faceapi.nets.ageGenderNet.loadFromUri(url); // not strictly needed, but useful for PD
-                        console.log(`✅ Models loaded from ${url}`);
-                        modelsReady = true;
-                        statusBadge.textContent = '✅ Ready – show your face';
-                        loader.classList.add('hidden');
-                        return;
-                    } catch (e) {
-                        console.warn(`Failed from ${url}:`, e);
-                    }
-                }
-                // If all fail – run in "offline" mode with basic capture
-                statusBadge.textContent = '⚠️ Offline mode – basic estimation';
-                modelsReady = false;
+<script>
+(function() {
+    // ----- DOM elements -----
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('overlay');
+    const ctx = canvas.getContext('2d');
+    const statusBadge = document.getElementById('statusBadge');
+    const frameSizeDisplay = document.getElementById('frameSizeDisplay');
+    const distanceLabel = document.getElementById('distanceLabel');
+    const pdDisplay = document.getElementById('pdDisplay');
+    const shapeDisplay = document.getElementById('shapeDisplay');
+    const captureBtn = document.getElementById('captureBtn');
+    const galleryDiv = document.getElementById('galleryContainer');
+    const clearBtn = document.getElementById('clearGalleryBtn');
+    const loader = document.getElementById('loader');
+
+    // ----- state -----
+    let modelsReady = false;
+    let cameraActive = false;
+    let currentStream = null;
+    let detectionInterval = null;
+    let lastDetection = null;                // store latest face detection (with landmarks/gender/age)
+    let captures = [];                       // array of capture objects
+
+    // ----- constants for recommendation -----
+    const MODEL_CDNS = [
+        "https://justadudewhohacks.github.io/face-api.js/models/",
+        "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model/",
+        "https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights/"
+    ];
+
+    // ----- load stored captures from localStorage -----
+    function loadCaptures() {
+        try {
+            const stored = localStorage.getItem('lensai_captures');
+            if (stored) {
+                captures = JSON.parse(stored);
+                // limit to last 12 to avoid too much localStorage
+                if (captures.length > 12) captures = captures.slice(-12);
+            }
+        } catch (e) { console.warn('failed to load captures', e); }
+        renderGallery();
+    }
+    function saveCaptures() {
+        try {
+            localStorage.setItem('lensai_captures', JSON.stringify(captures));
+        } catch (e) { console.warn('storage failed', e); }
+        renderGallery();
+    }
+
+    // ----- render gallery cards -----
+    function renderGallery() {
+        if (!galleryDiv) return;
+        if (captures.length === 0) {
+            galleryDiv.innerHTML = '<div style="color:#6a7faa; padding:10px; text-align:center; width:100%;">no captures yet — press the big button</div>';
+            return;
+        }
+        let html = '';
+        captures.slice().reverse().forEach((cap, idx) => {   // show newest first
+            html += `<div class="capture-card">
+                <img src="${cap.thumbnail}" class="thumb" alt="face" />
+                <div class="rec-tag">${cap.recommendation || '—'}</div>
+                <div class="meta-small">${cap.shape} · ${cap.frameSize}</div>
+                <div class="meta-small" style="margin-top:4px;">👁️ ${cap.pd} mm</div>
+            </div>`;
+        });
+        galleryDiv.innerHTML = html;
+    }
+
+    // ----- clear gallery -----
+    clearBtn.addEventListener('click', () => {
+        captures = [];
+        saveCaptures();
+    });
+
+    // ----- load face-api models with fallback -----
+    async function loadModels() {
+        statusBadge.textContent = '⏳ loading AI models...';
+        for (const url of MODEL_CDNS) {
+            try {
+                await faceapi.nets.tinyFaceDetector.loadFromUri(url);
+                await faceapi.nets.faceLandmark68TinyNet.loadFromUri(url);
+                await faceapi.nets.ageGenderNet.loadFromUri(url);   // for gender/age (CNN)
+                console.log(`✅ models loaded from ${url}`);
+                modelsReady = true;
+                statusBadge.textContent = '✅ ready – show your face';
                 loader.classList.add('hidden');
-            }
+                return;
+            } catch (e) { console.warn(`load fail from ${url}`, e); }
+        }
+        // if all fail, fallback to offline mode (no detection)
+        modelsReady = false;
+        statusBadge.textContent = '⚠️ offline mode – limited';
+        loader.classList.add('hidden');
+    }
 
-            // ----- Start camera -----
-            async function startCamera() {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({
-                        video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
-                        audio: false
-                    });
-                    video.srcObject = stream;
-                    currentStream = stream;
-                    await new Promise((resolve) => { video.onloadedmetadata = resolve; });
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    await video.play();
-                    cameraActive = true;
-                    statusBadge.textContent = modelsReady ? '✅ Ready – show your face' : '⚠️ Offline – tap to capture';
-                    startDetection();
-                } catch (err) {
-                    console.error('Camera error:', err);
-                    statusBadge.textContent = '❌ Camera access denied';
-                    instruction.textContent = 'Please allow camera access and refresh.';
-                }
-            }
-
-            // ----- Detection loop (throttled) -----
-            function startDetection() {
-                if (detectionInterval) clearInterval(detectionInterval);
-                // Run every 200ms
-                detectionInterval = setInterval(async () => {
-                    if (!cameraActive || !video.videoWidth) return;
-                    if (modelsReady) {
-                        await detectFace();
-                    } else {
-                        // Offline fallback: no face detection, just show message
-                        drawOfflineOverlay();
-                    }
-                }, 200);
-            }
-
-            // ----- Face detection & analysis -----
-            async function detectFace() {
-                const det = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({
-                    inputSize: 416,
-                    scoreThreshold: 0.5
-                })).withFaceLandmarks(true).withAgeAndGender();
-
-                drawOverlay(det);
-            }
-
-            // ----- Draw overlay and update frame size -----
-            function drawOverlay(det) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                if (!det) {
-                    // No face
-                    ctx.font = '16px Inter';
-                    ctx.fillStyle = 'rgba(255,255,255,0.8)';
-                    ctx.shadowColor = 'black';
-                    ctx.shadowBlur = 6;
-                    ctx.fillText('👤 No face', 20, 40);
-                    ctx.shadowBlur = 0;
-                    frameSizeDisplay.textContent = '--';
-                    distanceLabel.textContent = '--';
-                    pdDisplay.textContent = '--';
-                    statusBadge.innerHTML = '👤 No face detected';
-                    return;
-                }
-
-                // Mirror context to match video
-                ctx.save();
-                ctx.translate(canvas.width, 0);
-                ctx.scale(-1, 1);
-
-                const box = det.detection.box;
-                const cx = box.x + box.width / 2;
-                const cy = box.y + box.height / 2;
-                const radius = Math.max(box.width, box.height) * 0.58;
-                const ratio = box.width / canvas.width;  // face width relative to canvas
-
-                // Determine distance and frame size
-                let distanceStatus, ringColor, frameSize;
-                if (ratio < 0.22) {
-                    distanceStatus = 'too far';
-                    ringColor = '#f59e0b';
-                    frameSize = 'Too far – move closer';
-                } else if (ratio > 0.50) {
-                    distanceStatus = 'too close';
-                    ringColor = '#ef4444';
-                    frameSize = 'Too close – step back';
-                } else {
-                    distanceStatus = 'optimal';
-                    ringColor = '#10b981';
-                    // Estimate frame size based on ratio
-                    if (ratio < 0.28) frameSize = 'Slim (132 mm)';
-                    else if (ratio > 0.47) frameSize = 'Wide (150 mm)';
-                    else frameSize = 'Classic (142 mm)';
-                }
-
-                // ----- Draw guidance ring -----
-                ctx.beginPath();
-                ctx.arc(cx, cy, radius + 6, 0, 2 * Math.PI);
-                ctx.strokeStyle = ringColor + '80';
-                ctx.lineWidth = 12;
-                ctx.shadowBlur = 30;
-                ctx.shadowColor = ringColor;
-                ctx.stroke();
-
-                ctx.beginPath();
-                ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
-                ctx.strokeStyle = ringColor;
-                ctx.lineWidth = 4;
-                ctx.shadowBlur = 24;
-                ctx.stroke();
-
-                // Dashed inner ring
-                ctx.beginPath();
-                ctx.arc(cx, cy, radius - 12, 0, 2 * Math.PI);
-                ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-                ctx.lineWidth = 2;
-                ctx.shadowBlur = 0;
-                ctx.setLineDash([8, 12]);
-                ctx.lineDashOffset = -((Date.now() * 0.02) % 20);
-                ctx.stroke();
-                ctx.setLineDash([]);
-
-                // ----- Draw landmarks (small dots) -----
-                if (det.landmarks) {
-                    const pts = det.landmarks.positions;
-                    ctx.fillStyle = 'rgba(255,255,255,0.9)';
-                    ctx.shadowBlur = 8;
-                    ctx.shadowColor = '#3888ff';
-                    pts.forEach(p => {
-                        ctx.beginPath();
-                        ctx.arc(p.x, p.y, 1.8, 0, 2 * Math.PI);
-                        ctx.fill();
-                    });
-                }
-
-                ctx.restore();
-
-                // ----- Update UI with frame size and metrics -----
-                frameSizeDisplay.textContent = frameSize;
-                distanceLabel.textContent = distanceStatus;
-
-                // Estimate PD if landmarks exist
-                if (det.landmarks) {
-                    const lm = det.landmarks;
-                    const leftEye = lm.getLeftEye();
-                    const rightEye = lm.getRightEye();
-                    const lPupil = leftEye[Math.floor(leftEye.length / 2)];
-                    const rPupil = rightEye[Math.floor(rightEye.length / 2)];
-                    const pdPx = Math.abs(rPupil.x - lPupil.x);
-                    // Rough conversion: assume 140mm face width = 1? Actually we scale by canvas width
-                    const estimatedPdMm = Math.round((pdPx / canvas.width) * 140);
-                    pdDisplay.textContent = estimatedPdMm + ' mm';
-                } else {
-                    pdDisplay.textContent = '--';
-                }
-
-                // Update badge
-                if (distanceStatus === 'optimal') {
-                    statusBadge.innerHTML = '✅ Face locked · ' + frameSize;
-                    statusBadge.style.background = 'rgba(16,185,129,0.2)';
-                    statusBadge.style.borderColor = '#10b981';
-                } else if (distanceStatus === 'too far') {
-                    statusBadge.innerHTML = '⬅️ Move closer';
-                    statusBadge.style.background = 'rgba(245,158,11,0.2)';
-                    statusBadge.style.borderColor = '#f59e0b';
-                } else if (distanceStatus === 'too close') {
-                    statusBadge.innerHTML = '➡️ Step back';
-                    statusBadge.style.background = 'rgba(239,68,68,0.2)';
-                    statusBadge.style.borderColor = '#ef4444';
-                }
-            }
-
-            // ----- Fallback when no models -----
-            function drawOfflineOverlay() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.font = '16px Inter';
-                ctx.fillStyle = 'rgba(255,255,255,0.8)';
-                ctx.shadowBlur = 6;
-                ctx.shadowColor = 'black';
-                ctx.fillText('⚠️ Offline mode', 20, 40);
-                ctx.shadowBlur = 0;
-                frameSizeDisplay.textContent = '-- (offline)';
-                distanceLabel.textContent = '--';
-                pdDisplay.textContent = '--';
-            }
-
-            // ----- Cleanup -----
-            window.addEventListener('beforeunload', () => {
-                if (currentStream) {
-                    currentStream.getTracks().forEach(t => t.stop());
-                }
-                if (detectionInterval) clearInterval(detectionInterval);
+    // ----- start camera -----
+    async function startCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
+                audio: false
             });
+            video.srcObject = stream;
+            currentStream = stream;
+            await new Promise((r) => { video.onloadedmetadata = r; });
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            await video.play();
+            cameraActive = true;
+            statusBadge.textContent = modelsReady ? '✅ show your face' : '⚠️ offline – tap capture anyway?';
+            startDetectionLoop();
+        } catch (err) {
+            statusBadge.textContent = '❌ camera access denied';
+        }
+    }
 
-            // ----- Start everything -----
-            await loadModels();
-            await startCamera();
-        })();
-    </script>
+    // ----- periodic detection (if models ready) -----
+    function startDetectionLoop() {
+        if (detectionInterval) clearInterval(detectionInterval);
+        detectionInterval = setInterval(async () => {
+            if (!cameraActive || !video.videoWidth) return;
+            if (modelsReady) {
+                await detectFaceAndDraw();
+            } else {
+                drawOfflineOverlay();
+            }
+        }, 200);
+    }
+
+    // ----- main detection + overlay + UI update -----
+    async function detectFaceAndDraw() {
+        const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({
+            inputSize: 416,
+            scoreThreshold: 0.5
+        })).withFaceLandmarks(true).withAgeAndGender();
+
+        lastDetection = detection;   // store for capture
+        drawOverlay(detection);
+        updateUIFromDetection(detection);
+    }
+
+    // ----- draw overlays (mirrored) and update UI -----
+    function drawOverlay(det) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (!det) {
+            ctx.font = 'bold 16px Inter';
+            ctx.fillStyle = '#ffffffcc';
+            ctx.shadowColor = '#000';
+            ctx.shadowBlur = 8;
+            ctx.fillText('👤 no face', 24, 50);
+            ctx.shadowBlur = 0;
+            return;
+        }
+
+        ctx.save();
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);   // mirror to match video
+
+        const box = det.detection.box;
+        const cx = box.x + box.width/2;
+        const cy = box.y + box.height/2;
+        const radius = Math.max(box.width, box.height) * 0.58;
+        const faceRatio = box.width / canvas.width;
+
+        // color by distance
+        let ringColor = '#fbbf24';
+        if (faceRatio < 0.22) ringColor = '#f59e0b';      // too far
+        else if (faceRatio > 0.5) ringColor = '#ef4444';  // too close
+        else ringColor = '#10b981';                        // optimal
+
+        // guidance ring
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius+6, 0, 2*Math.PI);
+        ctx.strokeStyle = ringColor + '80';
+        ctx.lineWidth = 12;
+        ctx.shadowBlur = 28;
+        ctx.shadowColor = ringColor;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, 2*Math.PI);
+        ctx.strokeStyle = ringColor;
+        ctx.lineWidth = 4;
+        ctx.shadowBlur = 20;
+        ctx.stroke();
+
+        // dashed inner ring (animated)
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius-12, 0, 2*Math.PI);
+        ctx.strokeStyle = '#ffffff80';
+        ctx.lineWidth = 2.5;
+        ctx.shadowBlur = 0;
+        ctx.setLineDash([8, 14]);
+        ctx.lineDashOffset = (Date.now() * 0.02) % 20;
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // draw tiny landmarks
+        if (det.landmarks) {
+            const pts = det.landmarks.positions;
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#3888ff';
+            pts.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 2, 0, 2*Math.PI);
+                ctx.fill();
+            });
+        }
+        ctx.restore();
+    }
+
+    // ----- update text fields based on detection (called every frame) -----
+    function updateUIFromDetection(det) {
+        if (!det) {
+            frameSizeDisplay.textContent = '--';
+            distanceLabel.textContent = '--';
+            pdDisplay.textContent = '--';
+            shapeDisplay.textContent = '--';
+            captureBtn.disabled = true;
+            statusBadge.innerHTML = '👤 no face';
+            return;
+        }
+
+        const box = det.detection.box;
+        const faceRatio = box.width / canvas.width;
+        let distanceStatus, frameSize;
+        if (faceRatio < 0.22) {
+            distanceStatus = 'too far';
+            frameSize = 'too far';
+        } else if (faceRatio > 0.5) {
+            distanceStatus = 'too close';
+            frameSize = 'too close';
+        } else {
+            distanceStatus = 'optimal';
+            if (faceRatio < 0.28) frameSize = 'Slim (132 mm)';
+            else if (faceRatio > 0.47) frameSize = 'Wide (150 mm)';
+            else frameSize = 'Classic (142 mm)';
+        }
+
+        // PD estimate from eyes
+        let pd = '--';
+        if (det.landmarks) {
+            const leftEye = det.landmarks.getLeftEye();
+            const rightEye = det.landmarks.getRightEye();
+            const l = leftEye[Math.floor(leftEye.length/2)];
+            const r = rightEye[Math.floor(rightEye.length/2)];
+            const pdPx = Math.abs(r.x - l.x);
+            pd = Math.round((pdPx / canvas.width) * 140) + '';
+        }
+
+        // face shape estimation (simple CNN-based heuristic using landmarks)
+        let shape = 'oval';
+        if (det.landmarks) {
+            const jaw = det.landmarks.getJawOutline();   // 0..16
+            if (jaw.length > 10) {
+                const faceWidth = box.width;
+                const faceHeight = box.height;
+                const ratioWH = faceWidth/faceHeight;
+                // chin width (points 6-10)
+                const chinW = Math.hypot(jaw[6].x - jaw[10].x, jaw[6].y - jaw[10].y);
+                const cheekW = Math.hypot(jaw[2].x - jaw[14].x, jaw[2].y - jaw[14].y); // rough cheek
+                if (ratioWH > 0.95 && ratioWH < 1.08 && chinW > 0.75*faceWidth) shape = 'round';
+                else if (ratioWH <= 0.9) shape = 'oval';
+                else if (ratioWH >= 1.1) shape = 'long';
+                else if (chinW < 0.65*faceWidth) shape = 'heart';
+                else shape = 'square';
+            }
+        }
+
+        // gender / age (from CNN)
+        let gender = det.gender || 'neutral';
+        let age = det.age ? Math.round(det.age) : 30;
+
+        // update DOM
+        frameSizeDisplay.textContent = frameSize;
+        distanceLabel.textContent = distanceStatus;
+        pdDisplay.textContent = pd + ' mm';
+        shapeDisplay.textContent = shape;
+
+        // enable/disable capture button
+        captureBtn.disabled = (distanceStatus !== 'optimal');
+
+        // badge text
+        if (distanceStatus === 'optimal') {
+            statusBadge.innerHTML = `✅ locked · ${frameSize} · ${gender}`;
+        } else if (distanceStatus === 'too far') {
+            statusBadge.innerHTML = '⬅️ move closer';
+        } else {
+            statusBadge.innerHTML = '➡️ step back';
+        }
+    }
+
+    function drawOfflineOverlay() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.font = '16px Inter';
+        ctx.fillStyle = '#ffffffcc';
+        ctx.shadowBlur = 6;
+        ctx.fillText('📴 offline mode', 24, 50);
+        ctx.shadowBlur = 0;
+    }
+
+    // ----- capture current face & store recommendation -----
+    async function captureCurrentFace() {
+        if (!lastDetection || !video.videoWidth) {
+            alert('No face detected yet');
+            return;
+        }
+
+        // generate thumbnail from video (mirrored to look natural)
+        const thumbCanvas = document.createElement('canvas');
+        thumbCanvas.width = 100;
+        thumbCanvas.height = 100;
+        const tCtx = thumbCanvas.getContext('2d');
+        // flip to correct mirror
+        tCtx.translate(100, 0);
+        tCtx.scale(-1, 1);
+        tCtx.drawImage(video, 0, 0, 100, 100);
+        const thumbData = thumbCanvas.toDataURL('image/jpeg', 0.7);
+
+        // extract latest metrics
+        const box = lastDetection.detection.box;
+        const faceRatio = box.width / canvas.width;
+        let frameSize = 'classic';
+        if (faceRatio < 0.28) frameSize = 'slim 132mm';
+        else if (faceRatio > 0.47) frameSize = 'wide 150mm';
+        else frameSize = 'classic 142mm';
+
+        // PD
+        let pd = '--';
+        if (lastDetection.landmarks) {
+            const leftEye = lastDetection.landmarks.getLeftEye();
+            const rightEye = lastDetection.landmarks.getRightEye();
+            const l = leftEye[Math.floor(leftEye.length/2)];
+            const r = rightEye[Math.floor(rightEye.length/2)];
+            const pdPx = Math.abs(r.x - l.x);
+            pd = Math.round((pdPx / canvas.width) * 140) + '';
+        }
+
+        // shape again (copy from updateUI)
+        let shape = 'oval';
+        if (lastDetection.landmarks) {
+            const jaw = lastDetection.landmarks.getJawOutline();
+            const faceWidth = box.width;
+            const faceHeight = box.height;
+            const ratioWH = faceWidth/faceHeight;
+            if (ratioWH > 0.95 && ratioWH < 1.08) shape = 'round';
+            else if (ratioWH <= 0.9) shape = 'oval';
+            else if (ratioWH >= 1.1) shape = 'long';
+            else shape = 'square';
+        }
+
+        // get gender/age
+        const gender = lastDetection.gender || 'neutral';
+        const age = lastDetection.age ? Math.round(lastDetection.age) : 30;
+
+        // ----- intelligent glasses recommendation based on shape & gender & age (cnn combined) -----
+        let recommendation = '';
+        if (shape === 'round') recommendation = 'angular / square frames';
+        else if (shape === 'oval') recommendation = 'most shapes – aviators, wayfarers';
+        else if (shape === 'square') recommendation = 'round / oval / cat-eye';
+        else if (shape === 'heart') recommendation = 'bottom-heavy / butterfly';
+        else if (shape === 'long') recommendation = 'oversized / bold temples';
+        else recommendation = 'classic rectangle';
+
+        // slight gender/age tweak
+        if (gender === 'female' && age < 35) recommendation += ' · trendy colors';
+        else if (gender === 'male' && age > 45) recommendation += ' · conservative';
+
+        // build capture object
+        const captureObj = {
+            thumbnail: thumbData,
+            frameSize: frameSize,
+            pd: pd,
+            shape: shape,
+            gender: gender,
+            age: age,
+            recommendation: recommendation,
+            timestamp: Date.now()
+        };
+
+        captures.push(captureObj);
+        if (captures.length > 15) captures.shift();  // keep reasonable size
+        saveCaptures();
+    }
+
+    // ----- capture button logic -----
+    captureBtn.addEventListener('click', () => {
+        captureCurrentFace().catch(console.warn);
+    });
+
+    // ----- cleanup on page leave -----
+    window.addEventListener('beforeunload', () => {
+        if (currentStream) currentStream.getTracks().forEach(t => t.stop());
+        if (detectionInterval) clearInterval(detectionInterval);
+    });
+
+    // ----- bootstrap -----
+    loadCaptures();
+    loadModels().then(() => startCamera());
+})();
+</script>
 </body>
 </html>
