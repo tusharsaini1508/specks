@@ -361,7 +361,7 @@
         <div id="galleryContainer" class="capture-grid">
             <!-- cards will appear here -->
         </div>
-        <div class="note">✨ all data saved on this device</div>
+        <div class="note">✨ all data .d on this device</div>
     </div>
 
     <!-- loader (hidden after models) -->
@@ -418,7 +418,7 @@
 
             <div class="form-actions">
                 <button type="button" class="btn btn-secondary" id="cancelFormBtn">Cancel</button>
-                <button type="submit" class="btn btn-primary">💾 Save entry</button>
+                <button type="submit" class="btn btn-primary">💾</button>
             </div>
         </form>
     </div>
@@ -458,7 +458,7 @@
     let lastPdMm = 0;
     let lastShape = '';
 
-    // collection of saved entries (max 15)
+    // collection of .d entries (max 15)
     let entries = [];
 
     // constants
@@ -477,7 +477,7 @@
         } catch (e) { console.warn('failed to load entries', e); }
         renderGallery();
     }
-    function saveEntries() {
+    function .Entries() {
         try {
             localStorage.setItem('lensai_entries', JSON.stringify(entries));
         } catch (e) { console.warn('storage failed', e); }
@@ -506,7 +506,7 @@
     // ----- clear gallery -----
     clearBtn.addEventListener('click', () => {
         entries = [];
-        saveEntries();
+        .Entries();
     });
 
     // ----- load face-api models with fallback -----
@@ -592,7 +592,7 @@
             return;
         }
 
-        ctx.save();
+        ctx..();
         ctx.translate(canvas.width, 0);
         ctx.scale(-1, 1);
 
@@ -767,7 +767,7 @@
         modal.classList.remove('active');
     });
 
-    // ----- handle form submit: combine with captured data and save -----
+    // ----- handle form submit: combine with captured data and . -----
     detailsForm.addEventListener('submit', (e) => {
         e.preventDefault();
 
@@ -821,7 +821,7 @@
 
         entries.push(entry);
         if (entries.length > 15) entries.shift();
-        saveEntries();
+        .Entries();
 
         modal.classList.remove('active');
         detailsForm.reset(); // optional, but keep detected values for next?
